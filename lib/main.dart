@@ -1,7 +1,3 @@
-import 'dart:js';
-import 'dart:js_util';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +5,7 @@ void main() {
   runApp(const MyApp());
 }
 
+// APP
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -38,14 +35,16 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
+// PAGES
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
+    var theme = (Theme.of(context));
 
     var buttonStyle = ElevatedButton.styleFrom(
-      primary: Color(0xFF1C72B8),
-      onPrimary: Colors.white,
+      primary: theme.colorScheme.primary,
+      onPrimary: theme.colorScheme.inversePrimary,
       elevation: 3,
       minimumSize: Size(160, 100),
     );
@@ -78,6 +77,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
+// WIDGETS
 class List extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -85,13 +85,43 @@ class List extends StatelessWidget {
     var subjects = appState.subjects;
 
     return ListView(
-      children: [
-        for (var subject in subjects) ListItem(subject: subject),
-      ],
+      children: [for (var subject in subjects) ListItem(subject: subject)],
     );
   }
 }
 
+class ListItem extends StatelessWidget {
+  const ListItem({
+    required this.subject,
+  });
+
+  final Subject subject;
+
+  @override
+  Widget build(BuildContext context) {
+    var theme = (Theme.of(context));
+
+    return Card(
+      color: theme.colorScheme.inversePrimary,
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: ListTile(
+          leading: Icon(
+            Icons.note,
+            size: 30,
+            color: Colors.black38,
+          ),
+          title: Text(
+            subject.getName(),
+            style: TextStyle(fontSize: 20, color: Colors.black87),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// CLASSES
 class Subject {
   const Subject({
     required this.name,
@@ -105,32 +135,4 @@ class Subject {
 
   String getName() => name;
   String getDpto() => dpto;
-}
-
-class ListItem extends StatelessWidget {
-  const ListItem({
-    required this.subject,
-  });
-
-  final Subject subject;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: (Theme.of(context)).colorScheme.inversePrimary,
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: ListTile(
-          leading: Icon(
-            Icons.note,
-            size: 30,
-          ),
-          title: Text(
-            subject.getName(),
-            style: TextStyle(fontSize: 20),
-          ),
-        ),
-      ),
-    );
-  }
 }
