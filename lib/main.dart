@@ -27,10 +27,18 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var subjects = <Subject>[];
+  var selectedIndex = 1;
 
-  void add() {
-    var i = new Subject(name: 'nombre', dpto: 'dpto', description: 'a');
-    subjects.add(i);
+  void addSubject({
+    required String name,
+    required String dpto,
+    required String description,
+  }) {
+    subjects.add(new Subject(
+      name: name,
+      dpto: dpto,
+      description: description,
+    ));
     notifyListeners();
   }
 }
@@ -46,7 +54,7 @@ class HomePage extends StatelessWidget {
       primary: theme.colorScheme.primary,
       onPrimary: theme.colorScheme.inversePrimary,
       elevation: 3,
-      minimumSize: Size(160, 100),
+      minimumSize: Size(80, 80),
     );
 
     return Column(
@@ -57,22 +65,33 @@ class HomePage extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.all(80),
-          child: ElevatedButton.icon(
+          child: ElevatedButton(
             style: buttonStyle,
             onPressed: () {
-              appState.add();
+              appState.addSubject(
+                name: 'Algebra II',
+                dpto: 'Matematica',
+                description: 'Hermosa materia',
+              );
             },
-            icon: Icon(
+            child: Icon(
               Icons.add,
-              size: 50,
-            ),
-            label: Text(
-              'add',
-              style: TextStyle(fontSize: 30),
+              size: 30,
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class AddPage {
+  Widget show() {
+    return Card(
+      color: Colors.blue,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+      ),
     );
   }
 }
@@ -92,7 +111,7 @@ class List extends StatelessWidget {
 
 class ListItem extends StatelessWidget {
   const ListItem({
-    required this.subject,
+    required Subject this.subject,
   });
 
   final Subject subject;
@@ -105,16 +124,19 @@ class ListItem extends StatelessWidget {
       color: theme.colorScheme.inversePrimary,
       child: Padding(
         padding: const EdgeInsets.all(10),
-        child: ListTile(
-          leading: Icon(
-            Icons.note,
-            size: 30,
-            color: Colors.black38,
-          ),
-          title: Text(
-            subject.getName(),
-            style: TextStyle(fontSize: 20, color: Colors.black87),
-          ),
+        child: Row(
+          children: [
+            SizedBox(width: 50),
+            Text(
+              subject.getName(),
+              style: TextStyle(fontSize: 20, color: Colors.black87),
+            ),
+            SizedBox(width: 50),
+            ElevatedButton(
+              onPressed: () => print(''),
+              child: Icon(Icons.description),
+            ),
+          ],
         ),
       ),
     );
@@ -124,9 +146,9 @@ class ListItem extends StatelessWidget {
 // CLASSES
 class Subject {
   const Subject({
-    required this.name,
-    required this.dpto,
-    required this.description,
+    required String this.name,
+    required String this.dpto,
+    required String this.description,
   });
 
   final String name;
@@ -135,4 +157,5 @@ class Subject {
 
   String getName() => name;
   String getDpto() => dpto;
+  String getDescription() => description;
 }
