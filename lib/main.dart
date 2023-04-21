@@ -60,9 +60,6 @@ class HomePage extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Expanded(
-          child: List(),
-        ),
         Padding(
           padding: const EdgeInsets.all(80),
           child: ElevatedButton(
@@ -79,6 +76,9 @@ class HomePage extends StatelessWidget {
               size: 30,
             ),
           ),
+        ),
+        Expanded(
+          child: List(),
         ),
       ],
     );
