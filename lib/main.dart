@@ -1,5 +1,3 @@
-import 'dart:js_util';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -42,8 +40,8 @@ class HomePage extends StatelessWidget {
     var theme = (Theme.of(context));
 
     var buttonStyle = ElevatedButton.styleFrom(
-      primary: theme.colorScheme.primary,
-      onPrimary: theme.colorScheme.inversePrimary,
+      backgroundColor: theme.colorScheme.primary,
+      foregroundColor: theme.colorScheme.inversePrimary,
       elevation: 3,
       minimumSize: Size(80, 80),
     );
@@ -81,11 +79,11 @@ class SubjectAdderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<AppState>();
-    var subjects = appState.subjects;
+    //var subjects = appState.subjects;
 
-    Field subjectName = Field(title: 'Nombre de la materia');
-    Field dpto = Field(title: 'Departamento');
-    Field description = Field(title: 'Descripcion');
+    final Field subjectName = Field(title: 'Nombre de la materia');
+    final Field dpto = Field(title: 'Departamento');
+    final Field description = Field(title: 'Descripcion');
 
     var fields = <Field>[subjectName, dpto, description];
     var data = <String>[];
