@@ -1,6 +1,7 @@
 import 'dart:js_util';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,25 +12,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Listado de materias',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF04345C)),
+    return ChangeNotifierProvider(
+      create: (context) => AppState(),
+      child: MaterialApp(
+        title: 'Listado de materias',
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF04345C)),
+        ),
+        home: HomePage(),
       ),
-      home: HomePage(subjectListInstance: SubjectList()),
     );
+  }
+}
+
+class AppState extends ChangeNotifier {
+  var subjects = <Subject>[];
+
+  void addSubject({required Subject subject}) {
+    subjects.add(subject);
+    notifyListeners();
   }
 }
 
 // PAGES
 class HomePage extends StatelessWidget {
-  HomePage({
-    required this.subjectListInstance,
-  });
-
-  final SubjectList subjectListInstance;
-
   @override
   Widget build(BuildContext context) {
     var theme = (Theme.of(context));
@@ -52,11 +59,9 @@ class HomePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SubjectAdderPage(
-                      subjectListInstance: subjectListInstance),
+                  builder: (context) => SubjectAdderPage(),
                 ),
               );
-              print(subjectListInstance.subjects.length);
             },
             child: Icon(
               Icons.add,
@@ -65,7 +70,7 @@ class HomePage extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: subjectListInstance,
+          child: SubjectList(),
         ),
       ],
     );
@@ -73,14 +78,11 @@ class HomePage extends StatelessWidget {
 }
 
 class SubjectAdderPage extends StatelessWidget {
-  const SubjectAdderPage({
-    required SubjectList this.subjectListInstance,
-  });
-
-  final SubjectList subjectListInstance;
-
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<AppState>();
+    var subjects = appState.subjects;
+
     Field subjectName = Field(title: 'Nombre de la materia');
     Field dpto = Field(title: 'Departamento');
     Field description = Field(title: 'Descripcion');
@@ -117,11 +119,12 @@ class SubjectAdderPage extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () => {
                 for (Field field in fields) {data.add(field.data)},
-                subjectListInstance.addSubject(
+                appState.addSubject(
                   subject: new Subject(
                       name: data[0], dpto: data[1], description: data[2]),
                 ),
-                print(subjectListInstance.subjects.length)
+                print(appState.subjects.length),
+                Navigator.pop(context),
               },
               child: Icon(Icons.check),
               style: ElevatedButton.styleFrom(
@@ -138,18 +141,14 @@ class SubjectAdderPage extends StatelessWidget {
 
 // WIDGETS
 class SubjectList extends StatelessWidget {
-  SubjectList _subjectList = SubjectList();
-
-  var subjects = <Subject>[];
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<AppState>();
+    var subjects = appState.subjects;
+
     return ListView(
       children: [for (var subject in subjects) ListItem(subject: subject)],
     );
-  }
-
-  void addSubject({required Subject subject}) {
-    subjects.add(subject);
   }
 }
 
@@ -164,23 +163,28 @@ class ListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     var theme = (Theme.of(context));
 
-    return Card(
-      color: theme.colorScheme.inversePrimary,
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Row(
-          children: [
-            SizedBox(width: 50),
-            Text(
-              subject.getName(),
-              style: TextStyle(fontSize: 20, color: Colors.black87),
-            ),
-            SizedBox(width: 50),
-            ElevatedButton(
-              onPressed: () => print(''),
-              child: Icon(Icons.description),
-            ),
-          ],
+    return Padding(
+      padding:
+          const EdgeInsets.only(bottom: 2.5, top: 2.5, left: 30, right: 30),
+      child: Card(
+        color: theme.colorScheme.inversePrimary,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(width: 50),
+              Text(
+                subject.getName(),
+                style: TextStyle(fontSize: 20, color: Colors.black87),
+              ),
+              SizedBox(width: 50),
+              ElevatedButton(
+                onPressed: () => print(''),
+                child: Icon(Icons.description),
+              ),
+            ],
+          ),
         ),
       ),
     );
