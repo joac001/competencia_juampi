@@ -25,10 +25,23 @@ class MyApp extends StatelessWidget {
 }
 
 class AppState extends ChangeNotifier {
+  Widget activePage = ListPage();
   var subjects = <Subject>[];
 
   void addSubject({required Subject subject}) {
     subjects.add(subject);
+    notifyListeners();
+  }
+
+  void changeActivePage({required int key}) {
+    switch (key) {
+      case 0:
+        activePage = ListPage();
+        break;
+      case 1:
+        activePage = SearchPage();
+        break;
+    }
     notifyListeners();
   }
 }
@@ -37,15 +50,31 @@ class AppState extends ChangeNotifier {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var theme = (Theme.of(context));
+    var appState = context.watch<AppState>();
+    Widget activePage = appState.activePage;
 
-    var buttonStyle = ElevatedButton.styleFrom(
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: theme.colorScheme.inversePrimary,
-      elevation: 3,
-      minimumSize: Size(80, 80),
+    double navBarHeight = 100;
+
+    return Column(
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height - navBarHeight,
+          child: activePage,
+        ),
+        SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: navBarHeight,
+          child: NavBar(),
+        ),
+      ],
     );
+  }
+}
 
+class ListPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -56,26 +85,15 @@ class HomePage extends StatelessWidget {
         Expanded(
           child: SubjectList(),
         ),
-        Padding(
-          padding: const EdgeInsets.all(80),
-          child: ElevatedButton(
-            style: buttonStyle,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SubjectAdderPage(),
-                ),
-              );
-            },
-            child: Icon(
-              Icons.add,
-              size: 30,
-            ),
-          ),
-        ),
       ],
     );
+  }
+}
+
+class SearchPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Placeholder();
   }
 }
 
@@ -139,12 +157,20 @@ class SubjectAdderPage extends StatelessWidget {
   void okPressed({required appState, required context, required List fields}) {
     if (fields[0].data == '' || fields[1].data == '') {
       showError(context: context);
+    } else if (fields[2].data == '') {
+      appState.addSubject(
+          subject: new Subject(
+        name: fields[0].data,
+        dpto: fields[1].data,
+        description: 'Sin descripcion',
+      ));
+      Navigator.pop(context);
     } else {
       appState.addSubject(
           subject: new Subject(
         name: fields[0].data,
         dpto: fields[1].data,
-        description: fields[1].data,
+        description: fields[2].data,
       ));
       Navigator.pop(context);
     }
@@ -175,7 +201,110 @@ class SubjectAdderPage extends StatelessWidget {
   }
 }
 
+class SubjectInfoPage extends StatelessWidget {
+  const SubjectInfoPage({
+    required Subject this.subject,
+  });
+
+  final Subject subject;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Scaffold(
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () => {Navigator.pop(context)},
+                    child: Icon(Icons.arrow_back),
+                  ),
+                  Expanded(child: SizedBox()),
+                ],
+              ),
+            ),
+            SubjectInfoTitle(title: subject.getName()),
+            SubjectInfo(subject: subject),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // WIDGETS
+class NavBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<AppState>();
+
+    var theme = Theme.of(context);
+
+    var addButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: theme.colorScheme.primary,
+      foregroundColor: theme.colorScheme.inversePrimary,
+      elevation: 3,
+      minimumSize: Size(80, 80),
+    );
+
+    var buttonStyle = ElevatedButton.styleFrom(
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.black,
+      elevation: 3,
+      minimumSize: Size(55, 55),
+    );
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 30, right: 30),
+          child: ElevatedButton(
+            style: buttonStyle,
+            onPressed: () => {appState.changeActivePage(key: 0)},
+            child: Icon(
+              Icons.list,
+              size: 30,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 30, right: 30),
+          child: ElevatedButton(
+            style: buttonStyle,
+            onPressed: () => {appState.changeActivePage(key: 1)},
+            child: Icon(
+              Icons.search,
+              size: 20,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 30, right: 30),
+          child: ElevatedButton(
+            style: addButtonStyle,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SubjectAdderPage(),
+                ),
+              );
+            },
+            child: Icon(
+              Icons.add,
+              size: 30,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class SubjectList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -202,24 +331,30 @@ class ListItem extends StatelessWidget {
     return Padding(
       padding:
           const EdgeInsets.only(bottom: 2.5, top: 2.5, left: 30, right: 30),
-      child: Card(
-        color: theme.colorScheme.inversePrimary,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(width: 50),
-              Text(
-                subject.getName(),
-                style: TextStyle(fontSize: 20, color: Colors.black87),
-              ),
-              SizedBox(width: 50),
-              ElevatedButton(
-                onPressed: () => print(''),
-                child: Icon(Icons.description),
-              ),
-            ],
+      child: GestureDetector(
+        onTap: () => {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SubjectInfoPage(subject: subject),
+            ),
+          )
+        },
+        child: Card(
+          color: theme.colorScheme.inversePrimary,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(
+                  child: Text(
+                    subject.getName(),
+                    style: TextStyle(fontSize: 20, color: Colors.black87),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -257,9 +392,86 @@ class Field extends StatelessWidget {
   }
 }
 
-// CLASSES
+class SubjectInfo extends StatelessWidget {
+  const SubjectInfo({
+    required Subject this.subject,
+  });
+
+  final Subject subject;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Text(
+          'Departamento:',
+          style: TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 15, bottom: 10),
+          child: Text(
+            subject.getDpto(),
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+        Text(
+          'Descripcion:',
+          style: TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 15, bottom: 10),
+          child: Text(
+            subject.getDescription(),
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class SubjectInfoTitle extends StatelessWidget {
+  const SubjectInfoTitle({
+    required String this.title,
+  });
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        height: 60,
+        child: Card(
+          color: Theme.of(context).colorScheme.secondary,
+          child: Center(
+            child: Text(
+              title,
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 35,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// DATA STRUCTURE
 class Subject {
-  const Subject({
+  Subject({
     required String this.name,
     required String this.dpto,
     required String this.description,
