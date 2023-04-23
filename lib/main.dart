@@ -49,6 +49,13 @@ class HomePage extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        SizedBox(
+          width: 50,
+          height: 50,
+        ),
+        Expanded(
+          child: SubjectList(),
+        ),
         Padding(
           padding: const EdgeInsets.all(80),
           child: ElevatedButton(
@@ -67,9 +74,6 @@ class HomePage extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(
-          child: SubjectList(),
-        ),
       ],
     );
   }
@@ -79,59 +83,93 @@ class SubjectAdderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<AppState>();
-    //var subjects = appState.subjects;
 
     final Field subjectName = Field(title: 'Nombre de la materia');
     final Field dpto = Field(title: 'Departamento');
     final Field description = Field(title: 'Descripcion');
 
     var fields = <Field>[subjectName, dpto, description];
-    var data = <String>[];
 
     return Dialog(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 100),
-            child: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: ElevatedButton(
-                    onPressed: () => {Navigator.pop(context)},
-                    child: Icon(Icons.arrow_back),
-                    style: ElevatedButton.styleFrom(minimumSize: Size(40, 40)),
+      child: Scaffold(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 100),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: ElevatedButton(
+                      onPressed: () => {Navigator.pop(context)},
+                      child: Icon(Icons.arrow_back),
+                      style:
+                          ElevatedButton.styleFrom(minimumSize: Size(40, 40)),
+                    ),
                   ),
-                ),
-                Expanded(child: SizedBox()),
-              ],
-            ),
-          ),
-          subjectName,
-          dpto,
-          description,
-          Padding(
-            padding: const EdgeInsets.only(top: 50),
-            child: ElevatedButton(
-              onPressed: () => {
-                for (Field field in fields) {data.add(field.data)},
-                appState.addSubject(
-                  subject: new Subject(
-                      name: data[0], dpto: data[1], description: data[2]),
-                ),
-                print(appState.subjects.length),
-                Navigator.pop(context),
-              },
-              child: Icon(Icons.check),
-              style: ElevatedButton.styleFrom(
-                elevation: 3,
-                minimumSize: Size(50, 45),
+                  Expanded(child: SizedBox()),
+                ],
               ),
             ),
+            subjectName,
+            dpto,
+            description,
+            Padding(
+              padding: const EdgeInsets.only(top: 50),
+              child: ElevatedButton(
+                onPressed: () => {
+                  okPressed(
+                      appState: appState, context: context, fields: fields),
+                },
+                child: Icon(Icons.check),
+                style: ElevatedButton.styleFrom(
+                  elevation: 3,
+                  minimumSize: Size(50, 45),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void okPressed({required appState, required context, required List fields}) {
+    if (fields[0].data == '' || fields[1].data == '') {
+      showError(context: context);
+    } else {
+      appState.addSubject(
+          subject: new Subject(
+        name: fields[0].data,
+        dpto: fields[1].data,
+        description: fields[1].data,
+      ));
+      Navigator.pop(context);
+    }
+  }
+
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showError(
+      {required context}) {
+    return ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        content: Container(
+          padding: const EdgeInsets.all(20),
+          height: 90,
+          decoration: const BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.all(Radius.circular(20)),
           ),
-        ],
+          child: const Text(
+            '¡Debes ingresar un nombre y departameno para la materia!',
+            style: TextStyle(fontSize: 15),
+          ),
+        ),
       ),
     );
   }
