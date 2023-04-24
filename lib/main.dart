@@ -1,3 +1,6 @@
+import 'dart:html';
+
+import 'package:easy_search_bar/easy_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -27,10 +30,29 @@ class MyApp extends StatelessWidget {
 class AppState extends ChangeNotifier {
   Widget activePage = ListPage();
   var subjects = <Subject>[];
+  var subjectsNames = <String>[];
 
   void addSubject({required Subject subject}) {
     subjects.add(subject);
+    updateSubjectNames();
+    updateDptos();
     notifyListeners();
+  }
+
+  void updateSubjectNames() {
+    for (Subject subject in this.subjects) {
+      this.subjectsNames.add(subject.getName());
+    }
+  }
+
+  List<String> updateDptos() {
+    var dptos = <String>[];
+    for (Subject subject in this.subjects) {
+      if (!subjectsNames.contains(subject.dpto)) {
+        dptos.add(subject.dpto);
+      }
+    }
+    return dptos;
   }
 
   void changeActivePage({required int key}) {
@@ -91,9 +113,43 @@ class ListPage extends StatelessWidget {
 }
 
 class SearchPage extends StatelessWidget {
+  String searchValue = '';
+
   @override
   Widget build(BuildContext context) {
-    return Placeholder();
+    var appState = context.watch<AppState>();
+
+    appState.updateSubjectNames();
+    var subjectsNames = appState.subjectsNames;
+    var dptos = appState.updateDptos();
+
+    var suggestions = subjectsNames + dptos;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Scaffold(
+            appBar: EasySearchBar(
+              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+              title: Text('Buscar'),
+              searchHintText: 'Busca por materia o departamento',
+              suggestions: suggestions,
+              onSearch: (value) => search(value: value, matching: suggestions),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void search({required String value, required List<String> matching}) {
+    var matcher = <String>[];
+
+    for (String match in matching) {
+      matcher.add(match.toLowerCase());
+    }
   }
 }
 
@@ -122,9 +178,15 @@ class SubjectAdderPage extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 10),
                     child: ElevatedButton(
                       onPressed: () => {Navigator.pop(context)},
-                      child: Icon(Icons.arrow_back),
-                      style:
-                          ElevatedButton.styleFrom(minimumSize: Size(40, 40)),
+                      child: Icon(
+                        Icons.arrow_back,
+                        size: 40,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(40, 40),
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                      ),
                     ),
                   ),
                   Expanded(child: SizedBox()),
@@ -141,10 +203,14 @@ class SubjectAdderPage extends StatelessWidget {
                   okPressed(
                       appState: appState, context: context, fields: fields),
                 },
-                child: Icon(Icons.check),
+                child: Icon(
+                  Icons.check,
+                  size: 40,
+                ),
                 style: ElevatedButton.styleFrom(
-                  elevation: 3,
-                  minimumSize: Size(50, 45),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  minimumSize: Size(50, 50),
                 ),
               ),
             ),
@@ -154,30 +220,38 @@ class SubjectAdderPage extends StatelessWidget {
     );
   }
 
-  void okPressed({required appState, required context, required List fields}) {
-    if (fields[0].data == '' || fields[1].data == '') {
-      showError(context: context);
-    } else if (fields[2].data == '') {
-      appState.addSubject(
-          subject: new Subject(
-        name: fields[0].data,
-        dpto: fields[1].data,
-        description: 'Sin descripcion',
-      ));
-      Navigator.pop(context);
+  void okPressed(
+      {required AppState appState, required context, required List fields}) {
+    if (!(appState.subjectsNames).contains(fields[0])) {
+      if (fields[0].data == '' || fields[1].data == '') {
+        showError(
+          context: context,
+          error: '¡Debes ingresar un nombre y departameno para la materia!',
+        );
+      } else if (fields[2].data == '') {
+        appState.addSubject(
+            subject: new Subject(
+          name: fields[0].data,
+          dpto: fields[1].data,
+          description: 'Sin descripcion',
+        ));
+        Navigator.pop(context);
+      } else {
+        appState.addSubject(
+            subject: new Subject(
+          name: fields[0].data,
+          dpto: fields[1].data,
+          description: fields[2].data,
+        ));
+        Navigator.pop(context);
+      }
     } else {
-      appState.addSubject(
-          subject: new Subject(
-        name: fields[0].data,
-        dpto: fields[1].data,
-        description: fields[2].data,
-      ));
-      Navigator.pop(context);
+      showError(context: context, error: '¡Esta materia ya esta guardada!');
     }
   }
 
   ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showError(
-      {required context}) {
+      {required context, required String error}) {
     return ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 3),
@@ -191,8 +265,8 @@ class SubjectAdderPage extends StatelessWidget {
             color: Colors.red,
             borderRadius: BorderRadius.all(Radius.circular(20)),
           ),
-          child: const Text(
-            '¡Debes ingresar un nombre y departameno para la materia!',
+          child: Text(
+            error,
             style: TextStyle(fontSize: 15),
           ),
         ),
@@ -214,18 +288,6 @@ class SubjectInfoPage extends StatelessWidget {
       child: Scaffold(
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: () => {Navigator.pop(context)},
-                    child: Icon(Icons.arrow_back),
-                  ),
-                  Expanded(child: SizedBox()),
-                ],
-              ),
-            ),
             SubjectInfoTitle(title: subject.getName()),
             SubjectInfo(subject: subject),
           ],
@@ -253,6 +315,7 @@ class NavBar extends StatelessWidget {
     );
 
     var otherButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: Colors.white,
       foregroundColor: Colors.black,
       elevation: 0,
       minimumSize: Size(55, 55),
@@ -268,7 +331,7 @@ class NavBar extends StatelessWidget {
             height: 70,
             child: Card(
               shape: RoundedRectangleBorder(),
-              color: Color(0xFF5F5F5F),
+              color: Theme.of(context).colorScheme.inverseSurface,
             ),
           ),
         ),
@@ -294,7 +357,7 @@ class NavBar extends StatelessWidget {
                 onPressed: () => {appState.changeActivePage(key: 1)},
                 child: Icon(
                   Icons.search,
-                  size: 20,
+                  size: 30,
                 ),
               ),
             ),
@@ -465,24 +528,10 @@ class SubjectInfoTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        height: 60,
-        child: Card(
-          color: Theme.of(context).colorScheme.secondary,
-          child: Center(
-            child: Text(
-              title,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 35,
-              ),
-            ),
-          ),
-        ),
-      ),
+    return AppBar(
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      title: Text(title),
+      centerTitle: true,
     );
   }
 }
