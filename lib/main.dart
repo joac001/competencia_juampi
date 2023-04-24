@@ -246,59 +246,77 @@ class NavBar extends StatelessWidget {
     var addButtonStyle = ElevatedButton.styleFrom(
       backgroundColor: theme.colorScheme.primary,
       foregroundColor: theme.colorScheme.inversePrimary,
-      elevation: 3,
-      minimumSize: Size(80, 80),
+      side: BorderSide(width: 5, color: Colors.white),
+      elevation: 0,
+      maximumSize: Size(85, 85),
+      minimumSize: Size(85, 85),
     );
 
-    var buttonStyle = ElevatedButton.styleFrom(
-      backgroundColor: Colors.transparent,
+    var otherButtonStyle = ElevatedButton.styleFrom(
       foregroundColor: Colors.black,
-      elevation: 3,
+      elevation: 0,
       minimumSize: Size(55, 55),
     );
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+    return Stack(
+      alignment: AlignmentDirectional.center,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30),
-          child: ElevatedButton(
-            style: buttonStyle,
-            onPressed: () => {appState.changeActivePage(key: 0)},
-            child: Icon(
-              Icons.list,
-              size: 30,
+        Align(
+          alignment: AlignmentDirectional.bottomEnd,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: 70,
+            child: Card(
+              shape: RoundedRectangleBorder(),
+              color: Color(0xFF5F5F5F),
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30),
-          child: ElevatedButton(
-            style: buttonStyle,
-            onPressed: () => {appState.changeActivePage(key: 1)},
-            child: Icon(
-              Icons.search,
-              size: 20,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30),
-          child: ElevatedButton(
-            style: addButtonStyle,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SubjectAdderPage(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: ElevatedButton(
+                style: otherButtonStyle,
+                onPressed: () => {appState.changeActivePage(key: 0)},
+                child: Icon(
+                  Icons.list,
+                  size: 30,
                 ),
-              );
-            },
-            child: Icon(
-              Icons.add,
-              size: 30,
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: ElevatedButton(
+                style: otherButtonStyle,
+                onPressed: () => {appState.changeActivePage(key: 1)},
+                child: Icon(
+                  Icons.search,
+                  size: 20,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: ElevatedButton(
+                style: addButtonStyle,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SubjectAdderPage(),
+                    ),
+                  );
+                },
+                child: Icon(
+                  Icons.add,
+                  size: 30,
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
