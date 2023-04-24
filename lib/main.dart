@@ -29,30 +29,36 @@ class MyApp extends StatelessWidget {
 
 class AppState extends ChangeNotifier {
   Widget activePage = ListPage();
+
   var subjects = <Subject>[];
   var subjectsNames = <String>[];
+  var dptos = <String>[];
 
   void addSubject({required Subject subject}) {
     subjects.add(subject);
-    updateSubjectNames();
+    subjectsNames.add(subject.getName());
     updateDptos();
     notifyListeners();
   }
 
-  void updateSubjectNames() {
-    for (Subject subject in this.subjects) {
-      this.subjectsNames.add(subject.getName());
+  void deleteSubject({required String name_}) {
+    for (int i = 0; i < subjects.length; i++) {
+      if (subjectsNames[i] == name_) {
+        subjects.removeAt(i);
+        subjectsNames.removeAt(i);
+        updateDptos();
+        break;
+      }
     }
+    notifyListeners();
   }
 
-  List<String> updateDptos() {
-    var dptos = <String>[];
-    for (Subject subject in this.subjects) {
+  void updateDptos() {
+    for (Subject subject in subjects) {
       if (!subjectsNames.contains(subject.dpto)) {
         dptos.add(subject.dpto);
       }
     }
-    return dptos;
   }
 
   void changeActivePage({required int key}) {
@@ -119,9 +125,8 @@ class SearchPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = context.watch<AppState>();
 
-    appState.updateSubjectNames();
     var subjectsNames = appState.subjectsNames;
-    var dptos = appState.updateDptos();
+    var dptos = appState.dptos;
 
     var suggestions = subjectsNames + dptos;
 
@@ -276,20 +281,37 @@ class SubjectAdderPage extends StatelessWidget {
 }
 
 class SubjectInfoPage extends StatelessWidget {
-  const SubjectInfoPage({
+  SubjectInfoPage({
     required Subject this.subject,
   });
 
   final Subject subject;
 
+  final deleteButton = ElevatedButton.styleFrom(
+    elevation: 0,
+    backgroundColor: Colors.transparent,
+    shadowColor: Colors.transparent,
+    fixedSize: Size(30, 30),
+  );
+
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<AppState>();
     return Dialog(
       child: Scaffold(
         body: Column(
           children: [
-            SubjectInfoTitle(title: subject.getName()),
+            SubjectInfoTitle(
+              title: subject.getName(),
+              appState: appState,
+            ),
             SubjectInfo(subject: subject),
+            ElevatedButton(
+                onPressed: () => {
+                      appState.deleteSubject(name_: subject.getName()),
+                      Navigator.pop(context),
+                    },
+                child: Icon(Icons.delete, size: 30))
           ],
         ),
       ),
@@ -522,9 +544,11 @@ class SubjectInfo extends StatelessWidget {
 class SubjectInfoTitle extends StatelessWidget {
   const SubjectInfoTitle({
     required String this.title,
+    required AppState this.appState,
   });
 
   final String title;
+  final AppState appState;
 
   @override
   Widget build(BuildContext context) {
