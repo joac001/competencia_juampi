@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import 'package:easy_search_bar/easy_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +17,7 @@ class MyApp extends StatelessWidget {
         title: 'Listado de materias',
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF04345C)),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         ),
         home: HomePage(),
       ),
@@ -130,14 +128,15 @@ class SearchPage extends StatelessWidget {
 
     var suggestions = subjectsNames + dptos;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(
           width: MediaQuery.of(context).size.width,
+          height: 80,
           child: Scaffold(
             appBar: EasySearchBar(
-              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               title: Text('Buscar'),
               searchHintText: 'Busca por materia o departamento',
               suggestions: suggestions,
@@ -145,6 +144,7 @@ class SearchPage extends StatelessWidget {
             ),
           ),
         ),
+        Expanded(child: Placeholder()),
       ],
     );
   }
@@ -169,54 +169,60 @@ class SubjectAdderPage extends StatelessWidget {
 
     var fields = <Field>[subjectName, dpto, description];
 
-    return Dialog(
+    return Dialog.fullscreen(
       child: Scaffold(
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 100),
-              child: Row(
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: () => {Navigator.pop(context)},
+                  child: Icon(
+                    Icons.arrow_back,
+                    size: 40,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(40, 40),
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                  ),
+                ),
+                // SizedBox(
+                //   width: MediaQuery.of(context).size.width -
+                //       (MediaQuery.of(context).size.width / 2),
+                // ),
+              ],
+            ),
+            SingleChildScrollView(
+              child: Column(
                 children: [
+                  subjectName,
+                  dpto,
+                  description,
                   Padding(
-                    padding: const EdgeInsets.only(left: 10),
+                    padding: const EdgeInsets.only(top: 40),
                     child: ElevatedButton(
-                      onPressed: () => {Navigator.pop(context)},
+                      onPressed: () => {
+                        okPressed(
+                          appState: appState,
+                          context: context,
+                          fields: fields,
+                        ),
+                      },
                       child: Icon(
-                        Icons.arrow_back,
+                        Icons.check,
                         size: 40,
                       ),
                       style: ElevatedButton.styleFrom(
-                        minimumSize: Size(40, 40),
                         backgroundColor: Colors.transparent,
                         elevation: 0,
+                        minimumSize: Size(50, 50),
                       ),
                     ),
                   ),
-                  Expanded(child: SizedBox()),
                 ],
-              ),
-            ),
-            subjectName,
-            dpto,
-            description,
-            Padding(
-              padding: const EdgeInsets.only(top: 50),
-              child: ElevatedButton(
-                onPressed: () => {
-                  okPressed(
-                      appState: appState, context: context, fields: fields),
-                },
-                child: Icon(
-                  Icons.check,
-                  size: 40,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  minimumSize: Size(50, 50),
-                ),
               ),
             ),
           ],
@@ -297,7 +303,7 @@ class SubjectInfoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<AppState>();
-    return Dialog(
+    return Dialog.fullscreen(
       child: Scaffold(
         body: Column(
           children: [
@@ -328,19 +334,19 @@ class NavBar extends StatelessWidget {
     var theme = Theme.of(context);
 
     var addButtonStyle = ElevatedButton.styleFrom(
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: theme.colorScheme.inversePrimary,
-      side: BorderSide(width: 5, color: Colors.white),
+      backgroundColor: Colors.grey,
+      foregroundColor: Colors.black,
+      side: BorderSide(width: 4, color: Colors.black),
       elevation: 0,
       maximumSize: Size(85, 85),
       minimumSize: Size(85, 85),
     );
 
     var otherButtonStyle = ElevatedButton.styleFrom(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       foregroundColor: Colors.black,
-      elevation: 0,
-      minimumSize: Size(55, 55),
+      elevation: 3,
+      minimumSize: Size(60, 60),
     );
 
     return Stack(
@@ -350,10 +356,10 @@ class NavBar extends StatelessWidget {
           alignment: AlignmentDirectional.bottomEnd,
           child: SizedBox(
             width: MediaQuery.of(context).size.width,
-            height: 70,
+            height: 72,
             child: Card(
               shape: RoundedRectangleBorder(),
-              color: Theme.of(context).colorScheme.inverseSurface,
+              color: Colors.grey,
             ),
           ),
         ),
@@ -362,7 +368,7 @@ class NavBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.only(bottom: 4),
               child: ElevatedButton(
                 style: otherButtonStyle,
                 onPressed: () => {appState.changeActivePage(key: 0)},
@@ -373,18 +379,12 @@ class NavBar extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(10),
-              child: ElevatedButton(
-                style: otherButtonStyle,
-                onPressed: () => {appState.changeActivePage(key: 1)},
-                child: Icon(
-                  Icons.search,
-                  size: 30,
-                ),
+              padding: const EdgeInsets.only(
+                top: 0,
+                right: 10,
+                left: 10,
+                bottom: 10,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
               child: ElevatedButton(
                 style: addButtonStyle,
                 onPressed: () {
@@ -397,6 +397,17 @@ class NavBar extends StatelessWidget {
                 },
                 child: Icon(
                   Icons.add,
+                  size: 30,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: ElevatedButton(
+                style: otherButtonStyle,
+                onPressed: () => {appState.changeActivePage(key: 1)},
+                child: Icon(
+                  Icons.search,
                   size: 30,
                 ),
               ),
@@ -444,7 +455,7 @@ class ListItem extends StatelessWidget {
           )
         },
         child: Card(
-          color: theme.colorScheme.inversePrimary,
+          color: theme.colorScheme.primary,
           child: Padding(
             padding: const EdgeInsets.all(10),
             child: Row(
