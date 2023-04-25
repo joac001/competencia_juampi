@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import 'package:easy_search_bar/easy_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -119,7 +117,7 @@ class ListPage extends StatelessWidget {
 }
 
 class SearchPage extends StatelessWidget {
-  String searchValue = '';
+  final String searchValue = '';
 
   @override
   Widget build(BuildContext context) {
@@ -468,7 +466,7 @@ class ListItem extends StatelessWidget {
 class Field extends StatelessWidget {
   Field({
     super.key,
-    required this.title,
+    required String this.title,
   });
 
   final String title;
