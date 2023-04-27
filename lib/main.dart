@@ -145,7 +145,7 @@ class SearchPage extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(child: Placeholder()),
+        Expanded(child: FilteredSubjectList(searchResaults: suggestions)),
       ],
     );
   }
@@ -564,6 +564,34 @@ class SubjectInfoTitle extends StatelessWidget {
       title: Text(title),
       centerTitle: true,
     );
+  }
+}
+
+class FilteredSubjectList extends StatelessWidget {
+  FilteredSubjectList({
+    required List<String> this.searchResaults,
+  });
+
+  final List<String> searchResaults;
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<AppState>();
+    var items = resaults(subjects: appState.subjects);
+
+    return ListView(
+      children: [for (int i = 0; i < items.length; i++) items[i]],
+    );
+  }
+
+  List<ListItem> resaults({required subjects}) {
+    List<ListItem> items = <ListItem>[];
+    for (Subject subject in subjects) {
+      if (searchResaults.contains(subject.getName())) {
+        items.add(ListItem(subject: subject));
+      }
+    }
+    return items;
   }
 }
 
