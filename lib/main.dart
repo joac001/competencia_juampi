@@ -44,6 +44,7 @@ class AppState extends ChangeNotifier {
       if (subjectsNames[i] == name_) {
         subjects.removeAt(i);
         subjectsNames.removeAt(i);
+        dptos.clear();
         updateDptos();
         break;
       }
@@ -53,8 +54,8 @@ class AppState extends ChangeNotifier {
 
   void updateDptos() {
     for (Subject subject in subjects) {
-      if (!subjectsNames.contains(subject.dpto)) {
-        dptos.add(subject.dpto);
+      if (!dptos.contains(subject.getDpto())) {
+        dptos.add(subject.getDpto());
       }
     }
   }
@@ -189,10 +190,6 @@ class SubjectAdderPage extends StatelessWidget {
                     elevation: 0,
                   ),
                 ),
-                // SizedBox(
-                //   width: MediaQuery.of(context).size.width -
-                //       (MediaQuery.of(context).size.width / 2),
-                // ),
               ],
             ),
             SingleChildScrollView(
@@ -338,15 +335,14 @@ class NavBar extends StatelessWidget {
       foregroundColor: Colors.black,
       side: BorderSide(width: 4, color: Colors.black),
       elevation: 0,
-      maximumSize: Size(85, 85),
-      minimumSize: Size(85, 85),
+      minimumSize: Size(70, 70),
     );
 
     var otherButtonStyle = ElevatedButton.styleFrom(
       backgroundColor: Theme.of(context).colorScheme.primary,
       foregroundColor: Colors.black,
       elevation: 3,
-      minimumSize: Size(60, 60),
+      minimumSize: Size(40, 40),
     );
 
     return Stack(
@@ -356,7 +352,7 @@ class NavBar extends StatelessWidget {
           alignment: AlignmentDirectional.bottomEnd,
           child: SizedBox(
             width: MediaQuery.of(context).size.width,
-            height: 72,
+            height: 65,
             child: Card(
               shape: RoundedRectangleBorder(),
               color: Colors.grey,
@@ -374,7 +370,7 @@ class NavBar extends StatelessWidget {
                 onPressed: () => {appState.changeActivePage(key: 0)},
                 child: Icon(
                   Icons.list,
-                  size: 30,
+                  size: 25,
                 ),
               ),
             ),
@@ -408,7 +404,7 @@ class NavBar extends StatelessWidget {
                 onPressed: () => {appState.changeActivePage(key: 1)},
                 child: Icon(
                   Icons.search,
-                  size: 30,
+                  size: 25,
                 ),
               ),
             ),
