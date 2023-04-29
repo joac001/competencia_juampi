@@ -30,34 +30,27 @@ class AppState extends ChangeNotifier {
 
   var subjects = <Subject>[];
   var subjectsNames = <String>[];
-  var dptos = <String>[];
 
   void addSubject({required Subject subject}) {
     subjects.add(subject);
-    subjectsNames.add(subject.getName());
-    updateDptos();
+    addSubjectName(name: subject.getName());
     notifyListeners();
   }
 
-  void deleteSubject({required String name_}) {
+  void addSubjectName({required String name}) {
+    subjectsNames.add(name);
+  }
+
+  void deleteSubject({required String name_, required String description_}) {
     for (int i = 0; i < subjects.length; i++) {
-      if (subjectsNames[i] == name_) {
+      if (subjects[i].getName() == name_ &&
+          subjects[i].getDescription() == description_) {
         subjects.removeAt(i);
         subjectsNames.removeAt(i);
-        dptos.clear();
-        updateDptos();
         break;
       }
     }
     notifyListeners();
-  }
-
-  void updateDptos() {
-    for (Subject subject in subjects) {
-      if (!dptos.contains(subject.getDpto())) {
-        dptos.add(subject.getDpto());
-      }
-    }
   }
 
   void changeActivePage({required int key}) {
@@ -124,38 +117,7 @@ class SearchPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = context.watch<AppState>();
 
-    var subjectsNames = appState.subjectsNames;
-    var dptos = appState.dptos;
-
-    var suggestions = subjectsNames + dptos;
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: 80,
-          child: Scaffold(
-            appBar: EasySearchBar(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              title: Text('Buscar'),
-              searchHintText: 'Busca por materia o departamento',
-              suggestions: suggestions,
-              onSearch: (value) => search(value: value, matching: suggestions),
-            ),
-          ),
-        ),
-        Expanded(child: FilteredSubjectList(searchResaults: suggestions)),
-      ],
-    );
-  }
-
-  void search({required String value, required List<String> matching}) {
-    var matcher = <String>[];
-
-    for (String match in matching) {
-      matcher.add(match.toLowerCase());
-    }
+    return Placeholder();
   }
 }
 
@@ -311,7 +273,9 @@ class SubjectInfoPage extends StatelessWidget {
             SubjectInfo(subject: subject),
             ElevatedButton(
                 onPressed: () => {
-                      appState.deleteSubject(name_: subject.getName()),
+                      appState.deleteSubject(
+                          name_: subject.getName(),
+                          description_: subject.getDescription()),
                       Navigator.pop(context),
                     },
                 child: Icon(Icons.delete, size: 30))
@@ -564,34 +528,6 @@ class SubjectInfoTitle extends StatelessWidget {
       title: Text(title),
       centerTitle: true,
     );
-  }
-}
-
-class FilteredSubjectList extends StatelessWidget {
-  FilteredSubjectList({
-    required List<String> this.searchResaults,
-  });
-
-  final List<String> searchResaults;
-
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<AppState>();
-    var items = resaults(subjects: appState.subjects);
-
-    return ListView(
-      children: [for (int i = 0; i < items.length; i++) items[i]],
-    );
-  }
-
-  List<ListItem> resaults({required subjects}) {
-    List<ListItem> items = <ListItem>[];
-    for (Subject subject in subjects) {
-      if (searchResaults.contains(subject.getName())) {
-        items.add(ListItem(subject: subject));
-      }
-    }
-    return items;
   }
 }
 
