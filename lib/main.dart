@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         title: 'Listado de materias',
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
+          colorScheme: ColorScheme.fromSeed(seedColor: Color(0xB91D023F)),
         ),
         home: HomePage(),
       ),
@@ -26,19 +26,55 @@ class MyApp extends StatelessWidget {
 }
 
 class AppState extends ChangeNotifier {
-  Widget activePage = ListPage();
+  static const historyLength = 5;
+  late String selectedTerm;
 
+  List<String> _searchHistory = <String>[];
+  List<String> filteredSearchHistory = <String>[];
+
+  var subject = Subject(name: 'a', dpto: 'c', description: 'b');
   var subjects = <Subject>[];
   var subjectsNames = <String>[];
 
-  void addSubject({required Subject subject}) {
-    subjects.add(subject);
-    addSubjectName(name: subject.getName());
+  List<String> filterSearchTerms({required String? filter}) {
+    if (filter != null && filter.isNotEmpty) {
+      return (_searchHistory.reversed.where((term) => term.startsWith(filter)))
+          .toList();
+    } else {
+      return (_searchHistory.reversed).toList();
+    }
+  }
+
+  void addSearchTerm(String term) {
+    if (_searchHistory.contains(term)) {
+      putSearchTermFirst(term);
+    } else {
+      _searchHistory.add(term);
+    }
+
+    if (_searchHistory.length > historyLength) {
+      _searchHistory.removeRange(0, _searchHistory.length - historyLength);
+    }
+
+    filteredSearchHistory = filterSearchTerms(filter: null);
     notifyListeners();
   }
 
-  void addSubjectName({required String name}) {
-    subjectsNames.add(name);
+  void deleteSearchTerm(String term) {
+    _searchHistory.removeWhere((t) => t == term);
+    filteredSearchHistory = filterSearchTerms(filter: null);
+    notifyListeners();
+  }
+
+  void putSearchTermFirst(String term) {
+    deleteSearchTerm(term);
+    addSearchTerm(term);
+  }
+
+  void addSubject({required Subject subject}) {
+    subjects.add(subject);
+    subjectsNames.add(subject.getName());
+    notifyListeners();
   }
 
   void deleteSubject({required String name_, required String description_}) {
@@ -52,18 +88,6 @@ class AppState extends ChangeNotifier {
     }
     notifyListeners();
   }
-
-  void changeActivePage({required int key}) {
-    switch (key) {
-      case 0:
-        activePage = ListPage();
-        break;
-      case 1:
-        activePage = SearchPage();
-        break;
-    }
-    notifyListeners();
-  }
 }
 
 // PAGES
@@ -71,20 +95,20 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<AppState>();
-    Widget activePage = appState.activePage;
 
-    double navBarHeight = 100;
+    //! DEBUG
+    //appState.subjects.add(appState.subject);
 
     return Column(
       children: [
         SizedBox(
           width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height - navBarHeight,
-          child: activePage,
+          height: MediaQuery.of(context).size.height - 100,
+          child: ListPage(),
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width,
-          height: navBarHeight,
+          height: 100,
           child: NavBar(),
         ),
       ],
@@ -107,17 +131,6 @@ class ListPage extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class SearchPage extends StatelessWidget {
-  final String searchValue = '';
-
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<AppState>();
-
-    return Placeholder();
   }
 }
 
@@ -262,6 +275,7 @@ class SubjectInfoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<AppState>();
+
     return Dialog.fullscreen(
       child: Scaffold(
         body: Column(
@@ -278,7 +292,8 @@ class SubjectInfoPage extends StatelessWidget {
                           description_: subject.getDescription()),
                       Navigator.pop(context),
                     },
-                child: Icon(Icons.delete, size: 30))
+                child: Icon(Icons.delete,
+                    size: 30, color: Theme.of(context).colorScheme.secondary))
           ],
         ),
       ),
@@ -297,13 +312,13 @@ class NavBar extends StatelessWidget {
     var addButtonStyle = ElevatedButton.styleFrom(
       backgroundColor: Colors.grey,
       foregroundColor: Colors.black,
-      side: BorderSide(width: 4, color: Colors.black),
+      side: BorderSide(width: 4, color: theme.colorScheme.inverseSurface),
       elevation: 0,
       minimumSize: Size(70, 70),
     );
 
     var otherButtonStyle = ElevatedButton.styleFrom(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: theme.colorScheme.primary,
       foregroundColor: Colors.black,
       elevation: 3,
       minimumSize: Size(40, 40),
@@ -328,17 +343,6 @@ class NavBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: ElevatedButton(
-                style: otherButtonStyle,
-                onPressed: () => {appState.changeActivePage(key: 0)},
-                child: Icon(
-                  Icons.list,
-                  size: 25,
-                ),
-              ),
-            ),
-            Padding(
               padding: const EdgeInsets.only(
                 top: 0,
                 right: 10,
@@ -358,17 +362,6 @@ class NavBar extends StatelessWidget {
                 child: Icon(
                   Icons.add,
                   size: 30,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: ElevatedButton(
-                style: otherButtonStyle,
-                onPressed: () => {appState.changeActivePage(key: 1)},
-                child: Icon(
-                  Icons.search,
-                  size: 25,
                 ),
               ),
             ),
@@ -400,11 +393,10 @@ class ListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var theme = (Theme.of(context));
+    var theme = Theme.of(context);
 
     return Padding(
-      padding:
-          const EdgeInsets.only(bottom: 2.5, top: 2.5, left: 30, right: 30),
+      padding: EdgeInsets.only(bottom: 2.5, top: 2.5, left: 30, right: 30),
       child: GestureDetector(
         onTap: () => {
           Navigator.push(
@@ -415,7 +407,7 @@ class ListItem extends StatelessWidget {
           )
         },
         child: Card(
-          color: theme.colorScheme.primary,
+          color: theme.colorScheme.secondary,
           child: Padding(
             padding: const EdgeInsets.all(10),
             child: Row(
@@ -524,7 +516,7 @@ class SubjectInfoTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       title: Text(title),
       centerTitle: true,
     );
